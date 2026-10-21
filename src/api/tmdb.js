@@ -10,3 +10,4 @@ export const getPopularMovies = (page, signal) =>
 
 export const searchMovies = (query, page, signal) =>
   tmdb.get("/search/movie", { params: { query, page }, signal }).then((res) => res.data);
+

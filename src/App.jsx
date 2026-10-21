@@ -22,17 +22,12 @@ export default function App() {
     setError(null);
 
     const request = search
-      ? searchMovies(search, page, controller.signal)
-      : getPopularMovies(page, controller.signal);
+      ? searchMovies(search, controller.signal)
+      : getPopularMovies(controller.signal);
 
     request
       .then((data) => {
-        setMovies((prev) => {
-          if (page === 1) return data.results;          
-          const seen = new Set(prev.map((m) => m.id));
-          return [...prev, ...data.results.filter((m) => !seen.has(m.id))];
-        });
-        setTotalPages(Math.min(data.total_pages, MAX_PAGES));
+        setMovies(data);
         setLoading(false);
       })
       .catch((err) => {
@@ -42,7 +37,7 @@ export default function App() {
       });
 
     return () => controller.abort();
-  }, [search, page]);
+  }, [search]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -57,35 +52,29 @@ export default function App() {
     <main className="app">
       <h1>Movie Explorer</h1>
 
-      <form className="search" onSubmit={handleSubmit}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setSearch(query.trim());
+        }}
+      >
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search movies…"
-          aria-label="Search movies"
         />
         <button type="submit">Search</button>
       </form>
 
-      {initialLoad && <p>Loading…</p>}
+      {loading && <p>Loading…</p>}
       {error && <p className="error">{error}</p>}
-      {noResults && <p className="empty">No results for "{search}"</p>}
-
-      {!initialLoad && movies.length > 0 && (
+      {!loading && !error && (
         <div className="grid">
           {movies.map((m) => (
-            <MovieCard key={m.id} movie={m} onSelect={setSelected} />
+            <MovieCard key={m.id} movie={m} />
           ))}
         </div>
       )}
-
-      {!initialLoad && !error && page < totalPages && movies.length > 0 && (
-        <button className="load-more" onClick={() => setPage((p) => p + 1)} disabled={loading}>
-          {loading ? "Loading…" : "Load more"}
-        </button>
-      )}
-
-      {selected && <MovieModal movie={selected} onClose={() => setSelected(null)} />}
     </main>
   );
 }
