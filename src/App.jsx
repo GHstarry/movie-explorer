@@ -2,19 +2,14 @@ import { useEffect, useState } from "react";
 import { isCancel } from "axios";
 import { getPopularMovies, searchMovies } from "./api/tmdb";
 import MovieCard from "./components/MovieCard";
-import MovieModal from "./components/MovieModal";
 import "./App.css";
-const MAX_PAGES = 500;
 
-export default function App() {
+function App() {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [query, setQuery] = useState("");
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [selected, setSelected] = useState(null);
+  const [query, setQuery] = useState("");   // what's typed in the box
+  const [search, setSearch] = useState(""); // what was actually submitted
 
   useEffect(() => {
     const controller = new AbortController();
@@ -37,16 +32,7 @@ export default function App() {
       });
 
     return () => controller.abort();
-  }, [search]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSearch(query.trim());
-    setPage(1);
-  };
-
-  const initialLoad = loading && page === 1;
-  const noResults = !loading && !error && search && movies.length === 0;
+  }, [search]); // re-runs whenever a new search is submitted
 
   return (
     <main className="app">
@@ -68,6 +54,11 @@ export default function App() {
 
       {loading && <p>Loading…</p>}
       {error && <p className="error">{error}</p>}
+      
+      {!loading && !error && search && movies.length === 0 && (
+        <p className="empty">No results for "{search}"</p>
+      )}
+
       {!loading && !error && (
         <div className="grid">
           {movies.map((m) => (
@@ -78,3 +69,5 @@ export default function App() {
     </main>
   );
 }
+
+export default App;
